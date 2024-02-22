@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package user;
+
+service UserService {
+  rpc Create(User) returns (User);
+  rpc GetUser(GetRequest) returns (User);
+  rpc GetAll(GetAllRequest) returns (GetAllResponse);
+  rpc Delete(User) returns (User);
+  rpc Update(User) returns (User);
+}
+
+message GetRequest{
+  string user_id = 1;
+}
+
+message GetAllRequest{
+  int64 page=1;
+  int64 limit=2;
+}
+
+message GetAllResponse{
+  repeated User users = 1 ;
+}
+
+
+message User {
+  string id = 1;
+  string name = 2;
+  string last_name = 3;
+}

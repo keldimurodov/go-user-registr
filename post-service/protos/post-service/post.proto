@@ -1,0 +1,45 @@
+syntax = "proto3";
+
+package post;
+
+service PostService {
+  rpc Create(Post) returns (Post);
+  rpc GetPost(GetRequest) returns (PostResponse);
+  rpc GetUserPosts(GetUserRequest) returns (GetAllResponse);
+  // rpc Update(UpdateRequest) returns (PostResponse);
+  // rpc Delete(DeleteRequest) returns (DeleteResponse);
+}
+
+message GetRequest{
+  string post_id = 1;
+}
+
+message GetUserRequest{
+  string user_id = 1;
+}
+
+message GetAllResponse{
+  repeated Post posts = 1;
+}
+
+message Owner {
+  string id=1;
+  string  name=2;
+  string last_name=3;
+}
+
+message Post {
+  string id = 1;
+  string title = 2;
+  string image_url = 3;
+  string owner_id = 4;
+}
+
+message PostResponse{
+  string id = 1;
+  string title = 2;
+  string image_url = 3;
+  Owner owner = 5;
+}
+
+
