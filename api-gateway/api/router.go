@@ -1,56 +1,101 @@
-package api
+package tokens
 
 import (
-	_ "api-gateway/api/docs" // swag
-	v1 "api-gateway/api/handlers/v1"
-	"api-gateway/config"
-	"api-gateway/pkg/logger"
-	"api-gateway/services"
+  "api-gateway/pkg/logger"
+  "time"
 
-	swaggerFiles "github.com/swaggo/files"
-	ginSwagger "github.com/swaggo/gin-swagger"
-
-	"github.com/gin-gonic/gin"
+  "github.com/dgrijalva/jwt-go"
 )
 
-// Option ...
-type Option struct {
-	Conf           config.Config
-	Logger         logger.Logger
-	ServiceManager services.IServiceManager
+type JWTHandler struct {
+  Sub       string
+  Exp       string
+  Iat       string
+  Role      string
+  SignInKey string
+  Log       logger.Logger
+  Token     string
+  Timeout   int
 }
 
-// @Title Welcome to RegisterPAGE
-// @Version 1.0
-// @Description This is a example of Social Network
-// @Host localhost:8080
-func New(option Option) *gin.Engine {
-	router := gin.New()
+type CustomClaims struct {
+  *jwt.Token
+  Sub  string  `json:"sub"`
+  Exp  float64 `json:"exp"`
+  Iat  float64 `json:"iat"`
+  Role string  `json:"role"`
+}
 
-	router.Use(gin.Logger())
-	router.Use(gin.Recovery())
+// Generating AuthGWT ...
+func (jwtHander *JWTHandler) GenerateAuthJWT() (access, refresh string, err error) {
+  var (
+    accessToken  jwt.Token
+    refreshToken jwt.Token
+    claims       jwt.MapClaims
+    rtClaims     jwt.MapClaims
+  )
 
-	handlerV1 := v1.New(&v1.HandlerV1Config{
-		Logger:         option.Logger,
-		ServiceManager: option.ServiceManager,
-		Cfg:            option.Conf,
-	})
+  accessToken = *jwt.New(jwt.SigningMethodHS256)
+  refreshToken = *jwt.New(jwt.SigningMethodHS256)
+  claims = accessToken.Claims.(jwt.MapClaims)
+  claims["sub"] = jwtHander.Sub
+  claims["exp"] = time.Now().Add(time.Minute * time.Duration(jwtHander.Timeout)).Unix()
+  claims["iat"] = time.Now().Unix()
+  claims["role"] = jwtHander.Role
 
-	api := router.Group("/v1")
-	// users
-	api.POST("/users", handlerV1.CreateUser)
-	api.GET("/users/:id", handlerV1.GetUser)
-	api.GET("/users", handlerV1.GetAll)
-	api.PUT("/users/:id", handlerV1.UpdateUser)
-	api.DELETE("/users/:id", handlerV1.DeleteUser)
+  access, err = accessToken.SignedString([]byte(jwtHander.SignInKey))
+  if err != nil {
+    jwtHander.Log.Fatal("error generating refresh token", )
+    return
+  }
 
-	// register
-	api.POST("/register", handlerV1.SignUp)
-	api.GET("/login", handlerV1.LogIn)
-	api.GET("/verification", handlerV1.Verification)
+  rtClaims = refreshToken.Claims.(jwt.MapClaims)
+  rtClaims["sub"] = jwtHander.Sub
+  refresh, err = refreshToken.SignedString([]byte(jwtHander.SignInKey))
+  if err != nil {
+    jwtHander.Log.Fatal("error generating refresh token")
+    return
+  }
+  return
+}
 
-	url := ginSwagger.URL("swagger/doc.json")
-	api.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, url))
+// Extracting claims
+func (jwtHandler *JWTHandler) ExtractClaims() (jwt.MapClaims, error) {
+  var (
+    token *jwt.Token
+    err   error
+  )
 
-	return router
+  token, err = jwt.Parse(jwtHandler.Token, func(t *jwt.Token) (interface{}, error) {
+    return []byte(jwtHandler.SignInKey), nil
+  })
+  if err != nil {
+    return nil, err
+  }
+
+  claims, ok := token.Claims.(jwt.MapClaims)
+  if !(ok && token.Valid) {
+    jwtHandler.Log.Fatal("invalid jwt token")
+    return nil, err
+  }
+  return claims, nil
+}
+
+func ExtractClaim(tokenStr string, signinKey []byte) (jwt.MapClaims, error) {
+  var (
+    token *jwt.Token
+    err   error
+  )
+  token, err = jwt.Parse(tokenStr, func(t *jwt.Token) (interface{}, error) {
+    return signinKey, nil
+  })
+  if err != nil {
+    return nil, err
+  }
+
+  claims, ok := token.Claims.(jwt.MapClaims)
+  if !(ok && token.Valid) {
+    return nil, err
+  }
+  return claims, nil
 }

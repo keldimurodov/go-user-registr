@@ -17,6 +17,11 @@ const docTemplate = `{
     "paths": {
         "/v1/login": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "LogIn - Api for login users",
                 "consumes": [
                     "application/json"
@@ -68,6 +73,11 @@ const docTemplate = `{
         },
         "/v1/register/": {
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Sign - Api for registring users",
                 "consumes": [
                     "application/json"
@@ -301,6 +311,11 @@ const docTemplate = `{
         },
         "/v1/verification": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "LogIn - Api for verification users",
                 "consumes": [
                     "application/json"

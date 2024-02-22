@@ -14,6 +14,7 @@ import (
 
 // Sign
 // @Summary Sign User
+// @Security ApiKeyAuth
 // @Description Sign - Api for registring users
 // @Tags registr
 // @Accept json
@@ -63,6 +64,7 @@ func (h *handlerV1) SignUp(c *gin.Context) {
 
 // LogIn
 // @Summary LogIn User
+// @Security ApiKeyAuth
 // @Description LogIn - Api for login users
 // @Tags registr
 // @Accept json
@@ -99,6 +101,7 @@ func (h *handlerV1) LogIn(c *gin.Context) {
 
 // Verification
 // @Summary Verification User
+// @Security ApiKeyAuth
 // @Description LogIn - Api for verification users
 // @Tags registr
 // @Accept json
@@ -110,8 +113,6 @@ func (h *handlerV1) LogIn(c *gin.Context) {
 // @Failure 500 {object} models.StandardErrorModel
 // @Router /v1/verification [get]
 func (h *handlerV1) Verification(c *gin.Context) {
-	var jspbMarshal protojson.MarshalOptions
-	jspbMarshal.UseProtoNames = true
 
 	email := c.Query("email")
 	code := c.Query("code")
