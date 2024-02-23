@@ -1,11 +1,11 @@
 package main
 
 import (
-	"api-gateway/api"
-	"api-gateway/config"
-	"api-gateway/pkg/logger"
-	"api-gateway/services"
 	"fmt"
+	"go-user-registr/api-gateway/api"
+	"go-user-registr/api-gateway/config"
+	"go-user-registr/api-gateway/pkg/logger"
+	"go-user-registr/api-gateway/services"
 
 	"github.com/casbin/casbin/v2"
 
@@ -21,14 +21,14 @@ func main() {
 		log.Error("gRPC dial error", logger.Error(err))
 	}
 
-	psqlString := fmt.Sprintf(`host=%s port=%s user=%s password=%s dbname=%s sslmode=disable`, "localhost", 5432, "postgres", "123", "users")
+	psqlString := fmt.Sprintf(`host=%s port=%d user=%s password=%s dbname=%s sslmode=disable`, "localhost", 5432, "postgres", "123", "users")
 
 	db, err := gormadapter.NewAdapter("postgres", psqlString, true)
 	if err != nil {
 		log.Error("gormadapter error", logger.Error(err))
 	}
 
-	enforcer, err := casbin.NewEnforcer("./conf/auth.conf", db)
+	enforcer, err := casbin.NewEnforcer("auth.conf", db)
 	if err != nil {
 		log.Error("NewEnforcer error", logger.Error(err))
 		return

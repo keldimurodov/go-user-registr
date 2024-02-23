@@ -3,9 +3,9 @@ package services
 import (
 	"fmt"
 
-	"api-gateway/config"
-	pbp "api-gateway/genproto/post"
-	pbu "api-gateway/genproto/user"
+	"go-user-registr/api-gateway/config"
+	pbp "go-user-registr/api-gateway/genproto/post"
+	pbu "go-user-registr/api-gateway/genproto/user"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"

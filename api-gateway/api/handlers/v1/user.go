@@ -8,10 +8,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"google.golang.org/protobuf/encoding/protojson"
 
-	models "api-gateway/api/handlers/models"
-	pbu "api-gateway/genproto/user"
-	l "api-gateway/pkg/logger"
-	"api-gateway/pkg/utils"
+	models "go-user-registr/api-gateway/api/handlers/models"
+	pbu "go-user-registr/api-gateway/genproto/user"
+	l "go-user-registr/api-gateway/pkg/logger"
+	"go-user-registr/api-gateway/pkg/utils"
 )
 
 // CreateUser ...

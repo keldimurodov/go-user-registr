@@ -1,101 +1,66 @@
-package tokens
+package api
 
 import (
-  "api-gateway/pkg/logger"
-  "time"
+	"github.com/casbin/casbin/v2"
+	_ "go-user-registr/api-gateway/api/docs" // swag
+	v1 "go-user-registr/api-gateway/api/handlers/v1"
+	t "go-user-registr/api-gateway/api/tokens"
+	"go-user-registr/api-gateway/config"
+	"go-user-registr/api-gateway/pkg/logger"
+	"go-user-registr/api-gateway/services"
 
-  "github.com/dgrijalva/jwt-go"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
+
+	"github.com/gin-gonic/gin"
 )
 
-type JWTHandler struct {
-  Sub       string
-  Exp       string
-  Iat       string
-  Role      string
-  SignInKey string
-  Log       logger.Logger
-  Token     string
-  Timeout   int
+// Option ...
+type Option struct {
+	Conf           config.Config
+	Logger         logger.Logger
+	jwtHandler     t.JWTHandler
+	Enforcer       *casbin.Enforcer
+	ServiceManager services.IServiceManager
 }
 
-type CustomClaims struct {
-  *jwt.Token
-  Sub  string  `json:"sub"`
-  Exp  float64 `json:"exp"`
-  Iat  float64 `json:"iat"`
-  Role string  `json:"role"`
-}
+// @Title Welcome to RegisterPAGE
+// @Version 1.0
+// @Description This is a example of Social Network
+// @Host localhost:8080
+// @securityDefinitions.apikey ApiKeyAuth
+// @in header
+// @name Authorization
+func New(option Option) *gin.Engine {
+	router := gin.New()
 
-// Generating AuthGWT ...
-func (jwtHander *JWTHandler) GenerateAuthJWT() (access, refresh string, err error) {
-  var (
-    accessToken  jwt.Token
-    refreshToken jwt.Token
-    claims       jwt.MapClaims
-    rtClaims     jwt.MapClaims
-  )
+	router.Use(gin.Logger())
+	router.Use(gin.Recovery())
 
-  accessToken = *jwt.New(jwt.SigningMethodHS256)
-  refreshToken = *jwt.New(jwt.SigningMethodHS256)
-  claims = accessToken.Claims.(jwt.MapClaims)
-  claims["sub"] = jwtHander.Sub
-  claims["exp"] = time.Now().Add(time.Minute * time.Duration(jwtHander.Timeout)).Unix()
-  claims["iat"] = time.Now().Unix()
-  claims["role"] = jwtHander.Role
+	handlerV1 := v1.New(&v1.HandlerV1Config{
+		Logger:         option.Logger,
+		ServiceManager: option.ServiceManager,
+		Enforcer:       *option.Enforcer,
+		Cfg:            option.Conf,
+	})
 
-  access, err = accessToken.SignedString([]byte(jwtHander.SignInKey))
-  if err != nil {
-    jwtHander.Log.Fatal("error generating refresh token", )
-    return
-  }
+	api := router.Group("/v1")
+	//handler := ccasbin.CasbinHandler{}
+	//api.Use(handler.CheckCasbinPermission(option.Enforcer, option.Conf))
+	// users
+	api.POST("/users", handlerV1.CreateUser)
+	api.GET("/users/:id", handlerV1.GetUser)
+	api.GET("/users", handlerV1.GetAll)
+	api.PUT("/users/:id", handlerV1.UpdateUser)
+	api.DELETE("/users/:id", handlerV1.DeleteUser)
 
-  rtClaims = refreshToken.Claims.(jwt.MapClaims)
-  rtClaims["sub"] = jwtHander.Sub
-  refresh, err = refreshToken.SignedString([]byte(jwtHander.SignInKey))
-  if err != nil {
-    jwtHander.Log.Fatal("error generating refresh token")
-    return
-  }
-  return
-}
+	// register
+	api.POST("/register", handlerV1.SignUp)
+	api.GET("/login", handlerV1.LogIn)
+	api.GET("/verification", handlerV1.Verification)
 
-// Extracting claims
-func (jwtHandler *JWTHandler) ExtractClaims() (jwt.MapClaims, error) {
-  var (
-    token *jwt.Token
-    err   error
-  )
+	url := ginSwagger.URL("swagger/doc.json")
+	api.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, url))
 
-  token, err = jwt.Parse(jwtHandler.Token, func(t *jwt.Token) (interface{}, error) {
-    return []byte(jwtHandler.SignInKey), nil
-  })
-  if err != nil {
-    return nil, err
-  }
-
-  claims, ok := token.Claims.(jwt.MapClaims)
-  if !(ok && token.Valid) {
-    jwtHandler.Log.Fatal("invalid jwt token")
-    return nil, err
-  }
-  return claims, nil
-}
-
-func ExtractClaim(tokenStr string, signinKey []byte) (jwt.MapClaims, error) {
-  var (
-    token *jwt.Token
-    err   error
-  )
-  token, err = jwt.Parse(tokenStr, func(t *jwt.Token) (interface{}, error) {
-    return signinKey, nil
-  })
-  if err != nil {
-    return nil, err
-  }
-
-  claims, ok := token.Claims.(jwt.MapClaims)
-  if !(ok && token.Valid) {
-    return nil, err
-  }
-  return claims, nil
+	return router
 }

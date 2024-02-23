@@ -1,8 +1,9 @@
 package casbin
 
 import (
-	tokens "api-gateway/api"
-	"api-gateway/config"
+	"errors"
+	tokens "go-user-registr/api-gateway/api/tokens"
+	"go-user-registr/api-gateway/config"
 	"net/http"
 	"strings"
 
@@ -11,16 +12,18 @@ import (
 	"github.com/spf13/cast"
 )
 
+var t string
+
 type CasbinHandler struct {
 	config   config.Config
-	enforcer casbin.Enforcer
+	enforcer *casbin.Enforcer
 }
 
-func (casb *CasbinHandler) CheckCasbinPermission(casbin *casbin.Enforcer, conf config.Config) gin.HandlerFunc {
+func (casb *CasbinHandler) CheckCasbinPermission(ca *casbin.Enforcer, conf config.Config) gin.HandlerFunc {
 
-	CasbinHandler := &CasbinHandler{
+	var CasbinHandler = &CasbinHandler{
 		config:   conf,
-		enforcer: casbin,
+		enforcer: ca,
 	}
 	return func(ctx *gin.Context) {
 		allowed, err := CasbinHandler.CheckPermission(ctx.Request)
@@ -38,11 +41,9 @@ func (casb *CasbinHandler) CheckCasbinPermission(casbin *casbin.Enforcer, conf c
 
 }
 
-func (casb *CasbinHandler) GetRole(ctx *gin.Context) (string, int) {
+func (casb *CasbinHandler) GetRole(ctx *http.Request) (string, int) {
 
-	var t string
-
-	token := ctx.GetHeader("Authorization")
+	token := ctx.Header.Get("Authorization")
 
 	if token == "" {
 		return "Unauthorized", http.StatusUnauthorized
@@ -52,7 +53,7 @@ func (casb *CasbinHandler) GetRole(ctx *gin.Context) (string, int) {
 		t = token
 	}
 
-	clams, err := tokens.ExtractClaim(token, []byte(conf.SignInKey))
+	clams, err := tokens.ExtractClaim(token, []byte(config.Load().SignInKey))
 	if err != nil {
 		return "Unauthorized, token is invalid", http.StatusUnauthorized
 	}
@@ -61,9 +62,13 @@ func (casb *CasbinHandler) GetRole(ctx *gin.Context) (string, int) {
 }
 
 func (casb *CasbinHandler) CheckPermission(r *http.Request) (bool, error) {
-	role, status := GetRole(r, cfg)
+
+	role, status := casb.GetRole(r)
+	if role == "Unauthorized" {
+		return true, nil
+	}
 	if status != 0 {
-		return false, erors.New(role)
+		return false, errors.New(role)
 	}
 
 	method := r.Method
@@ -71,4 +76,9 @@ func (casb *CasbinHandler) CheckPermission(r *http.Request) (bool, error) {
 
 	c, err := casb.enforcer.Enforce(role, action, method)
 
+	if err != nil {
+		return false, nil
+	}
+
+	return c, nil
 }

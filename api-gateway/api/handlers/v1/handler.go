@@ -1,11 +1,11 @@
 package v1
 
 import (
-	tokens "api-gateway/api"
-	"api-gateway/api/handlers/models"
-	"api-gateway/config"
-	"api-gateway/pkg/logger"
-	"api-gateway/services"
+	tokens "go-user-registr/api-gateway/api/tokens"
+	"go-user-registr/api-gateway/api/handlers/models"
+	"go-user-registr/api-gateway/config"
+	"go-user-registr/api-gateway/pkg/logger"
+	"go-user-registr/api-gateway/services"
 	"net/http"
 
 	"github.com/casbin/casbin/v2"
@@ -25,7 +25,7 @@ type HandlerV1Config struct {
 	Logger         logger.Logger
 	ServiceManager services.IServiceManager
 	Cfg            config.Config
-	JWTHandler      tokens.JWTHandler
+	JWTHandler     tokens.JWTHandler
 	Enforcer       casbin.Enforcer
 }
 

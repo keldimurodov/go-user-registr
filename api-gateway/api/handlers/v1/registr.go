@@ -1,10 +1,10 @@
 package v1
 
 import (
-	"api-gateway/api/handlers/models"
-	pbu "api-gateway/genproto/user"
-	l "api-gateway/pkg/logger"
 	"context"
+	"go-user-registr/api-gateway/api/handlers/models"
+	pbu "go-user-registr/api-gateway/genproto/user"
+	l "go-user-registr/api-gateway/pkg/logger"
 	"net/http"
 	"time"
 

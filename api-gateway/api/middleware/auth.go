@@ -4,12 +4,13 @@ import (
 	"net/http"
 	"strings"
 
+	m "go-user-registr/api-gateway/api/handlers/models"
+	token "go-user-registr/api-gateway/api/tokens"
+	"go-user-registr/api-gateway/config"
+
 	"github.com/casbin/casbin/v2"
 	jwtg "github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
-	token "api-gateway/api/tokens"
-	"api-gateway/config"
-	m "api-gateway/api/handlers/models"
 )
 
 type JwtRoleAuth struct {
