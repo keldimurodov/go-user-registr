@@ -1,0 +1,10 @@
+p, user, /v1/users/delete, DELETE
+
+p, admin, /users, POST
+p, admin, /v1/users/all, GET
+p, admin, /v1/get/user, GET
+
+p, superAdmin, /v1/post, POST
+
+g, admin, user
+g, superAdmin, admin

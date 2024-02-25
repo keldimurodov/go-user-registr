@@ -6,6 +6,7 @@ import (
 	"go-user-registr/api-gateway/config"
 	"net/http"
 	"strings"
+	"fmt"
 
 	"github.com/casbin/casbin/v2"
 	"github.com/gin-gonic/gin"
@@ -37,6 +38,41 @@ func (casb *CasbinHandler) CheckCasbinPermission(ca *casbin.Enforcer, conf confi
 				"message": "permission denied",
 			})
 		}
+	}
+
+}
+
+func NewAuthorizer() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+
+		token := ctx.GetHeader("Authorization")
+		if token == "" {
+			return
+		}
+
+		claims, err := tokens.ExtractClaim(token, []byte(config.Load().SignInKey))
+
+		if err != nil {
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+				"message": "invalid token",
+			})
+			return
+		}
+		sub := claims["role"]
+		obj := ctx.Request.URL.Path
+		etc := ctx.Request.Method
+		fmt.Println(sub, obj, etc)
+		e, _ := casbin.NewEnforcer("auth.conf", "auth.csv")
+		t, _ := e.Enforce(sub, obj, etc)
+
+		fmt.Println(t)
+		if t {
+			ctx.Next()
+			return
+		}
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+			"message": "net dostupo",
+		})
 	}
 
 }
