@@ -71,7 +71,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/register/": {
+        "/v1/sign/": {
             "post": {
                 "security": [
                     {
@@ -439,6 +439,13 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
+        }
+    },
+    "securityDefinitions": {
+        "ApiKeyAuth": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
         }
     }
 }`

@@ -1,15 +1,11 @@
 package main
 
 import (
-	"fmt"
 	"go-user-registr/api-gateway/api"
 	"go-user-registr/api-gateway/config"
 	"go-user-registr/api-gateway/pkg/logger"
 	"go-user-registr/api-gateway/services"
-
-	"github.com/casbin/casbin/v2"
-
-	gormadapter "github.com/casbin/gorm-adapter/v3"
+	"go-user-registr/api-gateway/queue/kafka/producer"
 )
 
 func main() {
@@ -21,23 +17,21 @@ func main() {
 		log.Error("gRPC dial error", logger.Error(err))
 	}
 
-	psqlString := fmt.Sprintf(`host=%s port=%d user=%s password=%s dbname=%s sslmode=disable`, "localhost", 5432, "postgres", "123", "users")
-
-	db, err := gormadapter.NewAdapter("postgres", psqlString, true)
+	writer, err := producer.NewKafkaProducerInit([]string{"localhost:9092"})
 	if err != nil {
-		log.Error("gormadapter error", logger.Error(err))
+		log.Error("NewKafkaProducerInit: %v", logger.Error(err))
 	}
 
-	enforcer, err := casbin.NewEnforcer("auth.conf", db)
+	err = writer.ProduceMessage("test-topic", []byte("message"))
 	if err != nil {
-		log.Error("NewEnforcer error", logger.Error(err))
-		return
+		log.Fatal("failed to run http server", logger.Error(err))
 	}
+
+	defer writer.Close()
 
 	server := api.New(api.Option{
 		Conf:           cfg,
 		Logger:         log,
-		Enforcer:       enforcer,
 		ServiceManager: serviceManager,
 	})
 

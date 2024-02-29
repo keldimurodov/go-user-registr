@@ -1,10 +1,8 @@
 package api
 
 import (
-	"github.com/casbin/casbin/v2"
 	_ "go-user-registr/api-gateway/api/docs" // swag
 	v1 "go-user-registr/api-gateway/api/handlers/v1"
-	t "go-user-registr/api-gateway/api/tokens"
 	"go-user-registr/api-gateway/config"
 	"go-user-registr/api-gateway/pkg/logger"
 	"go-user-registr/api-gateway/services"
@@ -19,8 +17,6 @@ import (
 type Option struct {
 	Conf           config.Config
 	Logger         logger.Logger
-	jwtHandler     t.JWTHandler
-	Enforcer       *casbin.Enforcer
 	ServiceManager services.IServiceManager
 }
 
@@ -40,13 +36,10 @@ func New(option Option) *gin.Engine {
 	handlerV1 := v1.New(&v1.HandlerV1Config{
 		Logger:         option.Logger,
 		ServiceManager: option.ServiceManager,
-		Enforcer:       *option.Enforcer,
 		Cfg:            option.Conf,
 	})
 
 	api := router.Group("/v1")
-	//handler := ccasbin.CasbinHandler{}
-	//api.Use(handler.CheckCasbinPermission(option.Enforcer, option.Conf))
 	// users
 	api.POST("/users", handlerV1.CreateUser)
 	api.GET("/users/:id", handlerV1.GetUser)
@@ -55,7 +48,7 @@ func New(option Option) *gin.Engine {
 	api.DELETE("/users/:id", handlerV1.DeleteUser)
 
 	// register
-	api.POST("/register", handlerV1.SignUp)
+	api.POST("/sign", handlerV1.SignUp)
 	api.GET("/login", handlerV1.LogIn)
 	api.GET("/verification", handlerV1.Verification)
 

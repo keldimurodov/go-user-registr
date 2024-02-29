@@ -89,7 +89,7 @@ paths:
       summary: LogIn User
       tags:
       - registr
-  /v1/register/:
+  /v1/sign/:
     post:
       consumes:
       - application/json
@@ -281,4 +281,9 @@ paths:
       summary: Verification User
       tags:
       - registr
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"

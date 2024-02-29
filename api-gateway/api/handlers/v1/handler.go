@@ -1,14 +1,12 @@
 package v1
 
 import (
-	tokens "go-user-registr/api-gateway/api/tokens"
 	"go-user-registr/api-gateway/api/handlers/models"
 	"go-user-registr/api-gateway/config"
 	"go-user-registr/api-gateway/pkg/logger"
 	"go-user-registr/api-gateway/services"
 	"net/http"
 
-	"github.com/casbin/casbin/v2"
 	"github.com/gin-gonic/gin"
 )
 
@@ -16,8 +14,6 @@ type handlerV1 struct {
 	log            logger.Logger
 	serviceManager services.IServiceManager
 	cfg            config.Config
-	jwtHander      tokens.JWTHandler
-	enforcer       casbin.Enforcer
 }
 
 // HandlerV1Config ...
@@ -25,8 +21,6 @@ type HandlerV1Config struct {
 	Logger         logger.Logger
 	ServiceManager services.IServiceManager
 	Cfg            config.Config
-	JWTHandler     tokens.JWTHandler
-	Enforcer       casbin.Enforcer
 }
 
 // New ...
@@ -35,8 +29,6 @@ func New(c *HandlerV1Config) *handlerV1 {
 		log:            c.Logger,
 		serviceManager: c.ServiceManager,
 		cfg:            c.Cfg,
-		jwtHander:      c.JWTHandler,
-		enforcer:       c.Enforcer,
 	}
 }
 

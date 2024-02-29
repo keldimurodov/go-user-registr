@@ -2,6 +2,7 @@ package v1
 
 import (
 	"context"
+	"fmt"
 	"go-user-registr/api-gateway/api/handlers/models"
 	pbu "go-user-registr/api-gateway/genproto/user"
 	l "go-user-registr/api-gateway/pkg/logger"
@@ -23,7 +24,7 @@ import (
 // @Success 200 {object} models.ResponseUser
 // @Failure 400 {object} models.StandardErrorModel
 // @Failure 500 {object} models.StandardErrorModel
-// @Router /v1/register/ [post]
+// @Router /v1/sign/ [post]
 func (h *handlerV1) SignUp(c *gin.Context) {
 	var (
 		body        models.UserDetail
@@ -49,6 +50,8 @@ func (h *handlerV1) SignUp(c *gin.Context) {
 		Email:     body.Email,
 		Password:  body.Password,
 	})
+
+	fmt.Println(response)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{

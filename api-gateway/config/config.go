@@ -9,7 +9,6 @@ import (
 // Config ...
 type Config struct {
 	Environment string // develop, staging, production
-	SignInKey string
 
 	UserServiceHost string
 	UserServicePort int
